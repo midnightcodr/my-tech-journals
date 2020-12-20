@@ -43,35 +43,32 @@ sudo mkdir /var/lib/redis
 
 2. on node 1
 ```
-sudo cat << EOF > /etc/redis/redis.conf
+sudo sh -c 'cat << EOF > /etc/redis/redis.conf
 protected-mode no
-port 6379
 logfile "/var/lib/redis/redis.log"
-EOF
+EOF'
 
 ```
 
 3. on node 2 & 3
 ```
-sudo cat << EOF > /etc/redis/redis.conf
+sudo sh -c 'cat << EOF > /etc/redis/redis.conf
 protected-mode no
-port 6379
 slaveof 192.168.1.196 6379
 logfile "/var/lib/redis/redis.log"
-EOF
+EOF'
 ```
 
 4. on node 1 - 3
 ```
-sudo cat << EOF > /etc/redis/sentinel.conf
+sudo sh -c 'cat << EOF > /etc/redis/sentinel.conf
 protected-mode no
-port 26379
 sentinel deny-scripts-reconfig yes
 sentinel monitor mymaster 192.168.1.196 6379 2
 sentinel down-after-milliseconds mymaster 5000
 sentinel failover-timeout mymaster 10000
 logfile "/var/lib/redis/sentinel.log"
-EOF
+EOF'
 ```
 
 5. start redis servers on all nodes
@@ -81,20 +78,25 @@ sudo redis-server /etc/redis/redis.conf &
 ```
 6. start sentinel servers on all nodes
 ```
-sudo redis-sentinel /etc/redis/redis.conf &
+sudo redis-sentinel /etc/redis/sentinel.conf &
 ```
 
-7. verify failover
+7. white a test key in the master node (1)
+```
+redis-cli set hello world
+```
+
+8. verify failover
 ```
 # on node 2 & 3, run
 watch redis-cli info replication
 
 # on node 1, run
-redis-cli debug sleep 30
+redis-cli debug sleep 15
 ```
-If failover is working, either node 2 or should should change from `slave` into `master` role after about 5 seconds.
+If failover is working, either node 2 or should should change from `slave` into `master` role after a few seconds.
 
-8. use a nodejs program to verify failover is working
+9. use a nodejs program to verify failover is working
 ```javascript
 const Redis = require('ioredis')
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -120,4 +122,4 @@ const run = async () => {
 
 run()
 ```
-To test this, running `redis-cli debug sleep 30` won't work anymore. The proper way to test this is to terminate the redis-server process on the node that's currently of `master` role.
+To test the failover, use the same `redis-cli debug sleep 15` on the master node.
