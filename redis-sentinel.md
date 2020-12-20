@@ -81,7 +81,7 @@ sudo redis-server /etc/redis/redis.conf &
 sudo redis-sentinel /etc/redis/sentinel.conf &
 ```
 
-7. white a test key in the master node (1)
+7. write a test key in the master node (1)
 ```
 redis-cli set hello world
 ```
