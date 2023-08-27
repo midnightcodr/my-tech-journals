@@ -18,6 +18,22 @@ fn main() {
 
 ```
 
+The lifetime annotations in the above can be omitted:
+```rust
+use std::time::Duration;
+fn add<T: Copy + std::ops::Add<Output = T>>(i: &T, j: &T) -> T {
+    *i + *j
+}
+fn main() {
+    let a: i32 = 30;
+    let b: i32 = 40;
+    println!("{} + {} = {}", a, b, add(&a, &b));
+    let a = Duration::new(5, 0);
+    let b = Duration::new(10, 0);
+    println!("{:?} + {:?} = {:?}", a, b, add(&a, &b));
+}
+```
+
 
 Cargo.toml
 ```ini
